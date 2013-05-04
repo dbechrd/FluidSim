@@ -15,81 +15,63 @@
 
 #include "ParticleEmitter.h"
 
-using namespace std;
-
 #define FPS 60
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 800
-#define CAMERA_DISTANCE 2.6f
+#define CAMERA_DISTANCE 2.5f
 #define FULLSCREEN false
+
+using namespace std;
 
 bool mouseLeftDown = false;
 bool mouseRightDown = false;
 float mouseX, mouseY = 0;
-float cameraAngleX = 12.0f;
+float cameraAngleX = 0.0f;
 float cameraAngleY = 0.0f;
+float cameraAngleZ = 0.0f;
 float cameraDistance = CAMERA_DISTANCE;
 int drawMode = 0; // 0:fill, 1: wireframe, 2:points
 sf::Event event;
 bool quit = false;
 
-// cube ///////////////////////////////////////////////////////////////////////
-GLfloat vertices[] = { 1, -0.75, 1,  -1, -0.75, 1,  -1,-1, 1,      // v0-v1-v2 (front)
-                       -1,-1, 1,   1,-1, 1,   1, -0.75, 1,      // v2-v3-v0
+//						 x    y    z      x    y    z      x    y    z
+GLfloat vertices[] = { -1.1, 1.1, 0.1,  -1.1,-1.1, 0.1,  -1.0, 1.1, 0.1, 
+                       -1.0, 1.1, 0.1,  -1.1,-1.1, 0.1,  -1.0,-1.1, 0.1, 
 
-                        1, -0.75, 1,   1,-1, 1,   1,-1,-1,      // v0-v3-v4 (right)
-                        1,-1,-1,   1, -0.75,-1,   1, -0.75, 1,      // v4-v5-v0
+					   -1.1, 1.1,-0.1,  -1.1,-1.1,-0.1,  -1.1, 1.1, 0.1, 
+                       -1.1, 1.1, 0.1,  -1.1,-1.1,-0.1,  -1.1,-1.1, 0.1, 
 
-                       // 1, 1, 1,   1, 1,-1,  -1, 1,-1,      // v0-v5-v6 (top)
-                       //-1, 1,-1,  -1, 1, 1,   1, 1, 1,      // v6-v1-v0
+                       -1.0, 1.1,-0.1,  -1.0,-1.1,-0.1,  -1.1, 1.1,-0.1, 
+                       -1.1, 1.1,-0.1,  -1.0,-1.1,-0.1,  -1.1,-1.1,-0.1, 
 
-                       -1, -0.75, 1,  -1, -0.75,-1,  -1,-1,-1,      // v1-v6-v7 (left)
-                       -1,-1,-1,  -1,-1, 1,  -1, -0.75, 1,      // v7-v2-v1
-
-                       -1,-1,-1,   1,-1,-1,   1,-1, 1,      // v7-v4-v3 (bottom)
-                        1,-1, 1,  -1,-1, 1,  -1,-1,-1,      // v3-v2-v7
-
-                        1,-1,-1,  -1,-1,-1,  -1, -0.75,-1,      // v4-v7-v6 (back)
-                       -1, -0.75,-1,   1, -0.75,-1,   1,-1,-1 };    // v6-v5-v4
+                       -1.0, 1.1, 0.1,  -1.0,-1.1, 0.1,  -1.0, 1.1,-0.1, 
+                       -1.0, 1.1,-0.1,  -1.0,-1.1, 0.1,  -1.0,-1.1,-0.1 };
 
 // normal array
-GLfloat normals[]  = { 0, 0, 1,   0, 0, 1,   0, 0, 1,      // v0-v1-v2 (front)
-                        0, 0, 1,   0, 0, 1,   0, 0, 1,      // v2-v3-v0
+GLfloat normals[]  = {  0, 0, 1,   0, 0, 1,   0, 0, 1, 
+                        0, 0, 1,   0, 0, 1,   0, 0, 1, 
 
-                        1, 0, 0,   1, 0, 0,   1, 0, 0,      // v0-v3-v4 (right)
-                        1, 0, 0,   1, 0, 0,   1, 0, 0,      // v4-v5-v0
+                       -1, 0, 0,  -1, 0, 0,  -1, 0, 0, 
+                       -1, 0, 0,  -1, 0, 0,  -1, 0, 0, 
 
-                        //0, 1, 0,   0, 1, 0,   0, 1, 0,      // v0-v5-v6 (top)
-                        //0, 1, 0,   0, 1, 0,   0, 1, 0,      // v6-v1-v0
+						0, 0,-1,   0, 0,-1,   0, 0,-1, 
+                        0, 0,-1,   0, 0,-1,   0, 0,-1,
 
-                       -1, 0, 0,  -1, 0, 0,  -1, 0, 0,      // v1-v6-v7 (left)
-                       -1, 0, 0,  -1, 0, 0,  -1, 0, 0,      // v7-v2-v1
-
-                        0,-1, 0,   0,-1, 0,   0,-1, 0,      // v7-v4-v3 (bottom)
-                        0,-1, 0,   0,-1, 0,   0,-1, 0,      // v3-v2-v7
-
-                        0, 0,-1,   0, 0,-1,   0, 0,-1,      // v4-v7-v6 (back)
-                        0, 0,-1,   0, 0,-1,   0, 0,-1 };    // v6-v5-v4
+                        1, 0, 0,   1, 0, 0,   1, 0, 0, 
+                        1, 0, 0,   1, 0, 0,   1, 0, 0 };
 
 // color array
-GLfloat colors[]   = { 1, 1, 1,   1, 1, 0,   1, 0, 0,      // v0-v1-v2 (front)
-                        1, 0, 0,   1, 0, 1,   1, 1, 1,      // v2-v3-v0
+GLfloat colors[]   = { 1, 1, 1,   1, 1, 0,   1, 0, 0, 
+                       1, 0, 0,   1, 0, 1,   1, 1, 1, 
 
-                        1, 1, 1,   1, 0, 1,   0, 0, 1,      // v0-v3-v4 (right)
-                        0, 0, 1,   0, 1, 1,   1, 1, 1,      // v4-v5-v0
+                       1, 1, 1,   1, 0, 1,   0, 0, 1, 
+                       0, 0, 1,   0, 1, 1,   1, 1, 1, 
 
-                        //1, 1, 1,   0, 1, 1,   0, 1, 0,      // v0-v5-v6 (top)
-                        //0, 1, 0,   1, 1, 0,   1, 1, 1,      // v6-v1-v0
+                       1, 1, 0,   0, 1, 0,  .1,.1,.1, 
+                      .1,.1,.1,   1, 0, 0,   1, 1, 0, 
 
-                        1, 1, 0,   0, 1, 0,  .1,.1,.1,      // v1-v6-v7 (left)
-                       .1,.1,.1,   1, 0, 0,   1, 1, 0,      // v7-v2-v1
-
-                       .1,.1,.1,   0, 0, 1,   1, 0, 1,      // v7-v4-v3 (bottom)
-                        1, 0, 1,   1, 0, 0,  .1,.1,.1,      // v3-v2-v7
-
-                        0, 0, 1,  .1,.1,.1,   0, 1, 0,      // v4-v7-v6 (back)
-                        0, 1, 0,   0, 1, 1,   0, 0, 1 };    // v6-v5-v4
-
+                       0, 0, 1,  .1,.1,.1,   0, 1, 0, 
+                       0, 1, 0,   0, 1, 1,   0, 0, 1 };
 ///////////////////////////////////////////////////////////////////////////////
 
 sf::RenderWindow* window;
@@ -129,7 +111,7 @@ void initGL() {
     //glPixelStorei(GL_UNPACK_ALIGNMENT, 4);	// 4-byte pixel alignment
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glClearColor(1, 1, 1, 0);					// background color
+	glClearColor(0.75f, 0.75f, 0.75f, 0);					// background color
     //glClearStencil(0);						// clear stencil buffer
     //glClearDepth(1.0f);						// near (0) or far (1), default far assumes back-to-front rendering
 	glDepthFunc(GL_LESS);						// depth compare function
@@ -151,7 +133,7 @@ void initGL() {
     //glEnable(GL_CULL_FACE);
     glEnable(GL_COLOR_MATERIAL);
 
-	glPointSize(4.0f);
+	glPointSize(15.0f);
 }
 
 void initLights() {
@@ -183,7 +165,6 @@ void setPerspective() {
 
 void draw() {
     glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
 	glNormalPointer(GL_FLOAT, 0, normals);
@@ -191,11 +172,18 @@ void draw() {
     glVertexPointer(3, GL_FLOAT, 0, vertices);
 
 	glPushMatrix();
-	//glScalef(0.2, 0.2, 0.2);
+	glColor3f(0.9f, 0.9f, 0.9f);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
     glPopMatrix();
 
 	glDisableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
 	
     //glNormalPointer(GL_FLOAT, 0, part_normals);
     glColorPointer(4, GL_FLOAT, 0, emitter.ColorArray());
@@ -242,6 +230,16 @@ void HandleEvents() {
 					glDisable(GL_DEPTH_TEST);
 					glDisable(GL_CULL_FACE);
 				}
+			} else if (event.key.code == sf::Keyboard::G) {
+				//Reverse gravity
+				gravAdjust *= -1.0f;
+			} else if (event.key.code == sf::Keyboard::R) {
+				//Reset settings
+				gravAdjust = 1.0f;
+				cameraAngleX = 0.0f;
+				cameraAngleY = 0.0f;
+				cameraAngleZ = 0.0f;
+				cameraDistance = CAMERA_DISTANCE;
 			}
 		} else if (event.type == sf::Event::MouseButtonPressed) {
 			mouseX = sf::Mouse::getPosition().x;//event.mouseButton.x;
@@ -274,6 +272,13 @@ void HandleEvents() {
 				cameraDistance -= (y - mouseY) * 0.2f;
 				mouseY = y;
 			}
+		} else if (event.type == sf::Event::MouseWheelMoved) {
+			float delta = (float)event.mouseWheel.delta;
+			cameraAngleZ += delta * 4.0f;
+			if(cameraAngleZ > 360.0f && delta > 0.0f)
+				cameraAngleZ -= 360.0f;
+			else if(cameraAngleZ < 0.0f && delta < 0.0f)
+				cameraAngleZ += 360.0f;
 		}
 	}
 }
@@ -283,9 +288,11 @@ int main(int argc, char **argv) {
 	//Random seed
 	srand((u_int)time(NULL));
 
+	remove("output.log");
+
 	//Set up logging
 	ofstream logFile;
-	logFile.open("output.log");
+	logFile.open("output.log", std::ios_base::app);
 	cout.rdbuf(logFile.rdbuf()); //Redirect cout to log file
 
 	if(!initSFML()) return EXIT_FAILURE;
@@ -295,7 +302,7 @@ int main(int argc, char **argv) {
 
 	while(!quit) {
 		HandleEvents();
-		emitter.Update(1.0f);
+		emitter.Update(1.0f, cameraAngleZ+90.0f);
 
 		//////////////////// OpenGL Rendering /////////////////////////////////
 		// Clear buffers
@@ -303,9 +310,10 @@ int main(int argc, char **argv) {
 
 		glPushMatrix();
 			// Camera
-			glTranslatef(0, 0.5f, -cameraDistance);
+			glTranslatef(0, 0, -cameraDistance);
 			glRotatef(cameraAngleX, 1, 0, 0);   // pitch
-			glRotatef(cameraAngleY, 0, 1, 0);   // heading
+			glRotatef(cameraAngleY, 0, 1, 0);   // yaw
+			glRotatef(cameraAngleZ, 0, 0, 1);   // roll
 
 			// Scene
 			draw();
