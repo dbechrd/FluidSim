@@ -1,5 +1,4 @@
 #include "ParticleEmitter.h"
-#include "Particle.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -160,8 +159,8 @@ void ParticleEmitter::Update(GLfloat dt, GLfloat zRot) {
 		}
 	}*/
 
-	GLfloat Gx = -cos(zRot*PI/180.0f) * G;
-	GLfloat Gy = sin(zRot*PI/180.0f) * G;
+	GLfloat Gx = (GLfloat)-cos(zRot*PI/180.0f) * G;
+	GLfloat Gy = (GLfloat)sin(zRot*PI/180.0f) * G;
 
 	//Update position
 	for (i = 0; i < MAX_PARTICLES; ++i) {

@@ -9,8 +9,8 @@
 #define MIN(a,b) (a < b) ? a : b
 #define MAX(a,b) (a > b) ? a : b
 
+#include <SFML/OpenGL.hpp>
 #include <vector>
-#include "Particle.h"
 
 extern float gravAdjust;
 
