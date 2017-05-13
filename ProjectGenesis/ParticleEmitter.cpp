@@ -16,7 +16,6 @@
 #define REST_DENSITY 800.0f		// Density of fluid at rest
 #define DELTA_CLAMP	  99.0f		// Maximum delta x / delta y per frame 
 #define EPSILON		  0.000001f	// Minimum velocity
-#define VISCOSITY	  0.95f		//Artificial viscosity
 
 #define BOX_X	0.99f	// Container bounds
 #define BOX_Y	0.99f
@@ -25,6 +24,7 @@
 #define ALPHA	1.0f;	// Particle transparency
 
 float gravAdjust = 1.0f;
+float viscosity = 0.90f;		//Artificial viscosity
 
 const float max_color_rand = 1.0f/RAND_MAX;
 const float max_velocity_rand = MAX_VEL/RAND_MAX;
@@ -275,8 +275,8 @@ void ParticleEmitter::Update(GLfloat dt, GLfloat zRot) {
 		particleVel[ix] = dx / dt;
 		particleVel[iy] = dy / dt;
 
-		particleVel[ix] *= VISCOSITY;
-		particleVel[iy] *= VISCOSITY;
+		particleVel[ix] *= viscosity;
+		particleVel[iy] *= viscosity;
 
 		//particleColor[i*4] = (particlePos[iy] + 1.0f) / 0.4f;
 		//particleColor[i*4+1] = (particlePos[iy] + 1.0f) / 0.3f;

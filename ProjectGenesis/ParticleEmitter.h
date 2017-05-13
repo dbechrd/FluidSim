@@ -5,6 +5,7 @@
 #define MAX_PARTICLES 600
 //#define MAX_SPRINGS 8
 #define GRID_SIZE 20
+#define VISCOSITY 0.9f
 
 #define MIN(a,b) (a < b) ? a : b
 #define MAX(a,b) (a > b) ? a : b
@@ -13,6 +14,7 @@
 #include <vector>
 
 extern float gravAdjust;
+extern float viscosity;
 
 class ParticleEmitter {
 public:

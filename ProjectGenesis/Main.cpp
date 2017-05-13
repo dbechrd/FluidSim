@@ -240,6 +240,8 @@ void HandleEvents() {
 				cameraAngleY = 0.0f;
 				cameraAngleZ = 0.0f;
 				cameraDistance = CAMERA_DISTANCE;
+			} else if (event.key.code == sf::Keyboard::V) {
+				viscosity = (viscosity == 1.0f) ? VISCOSITY : 1.0f;
 			}
 		} else if (event.type == sf::Event::MouseButtonPressed) {
 			mouseX = sf::Mouse::getPosition().x;//event.mouseButton.x;
